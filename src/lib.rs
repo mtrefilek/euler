@@ -1,7 +1,9 @@
+mod util;
+
 #[cfg(test)]
 mod tests {
-    use crate::{fibonacci, greatest_prime_factor, multiples, n_prime, palindrome, smallest_multiple, special_pyth, sum_primes, sum_squares, thousand_digit};
-
+    use crate::util;
+    use crate::{fibonacci, greatest_prime_factor, largest_product_grid, multiples, n_prime, palindrome, smallest_multiple, special_pyth, sum_primes, sum_squares, thousand_digit};
     #[test]
     fn it_works() {
         assert_eq!(2 + 2, 4);
@@ -68,13 +70,83 @@ mod tests {
         assert_eq!(sum_primes(10), 17);
         println!("{}", sum_primes(2000000));
     }
+
+    #[test]
+    fn largest_product_grid_works() {
+        println!("{}", largest_product_grid(util::read_file("data/11.in")))
+    }
+}
+
+fn largest_product_grid(grid:String) -> i64 {
+    let mut grid_vec:Vec<i64> = Vec::new();
+    let mut len = 0;
+    let mut rows = 0;
+
+    for line in grid.lines() {
+        len = 0;
+        for num in line.split_whitespace() {
+            grid_vec.push(num.parse::<i64>().unwrap());
+            len += 1;
+        }
+        rows += 1;
+    }
+
+    let paths:[[(i64, i64); 3]; 8] = [
+        [
+            (0, -1), (0, -2), (0, -3)
+        ],
+        [
+            (1, -1), (2, -2), (3, -3)
+        ],
+        [
+            (1, 0), (2, 0), (3, 0)
+        ],
+        [
+            (1, 1), (2, -2), (3, -3)
+        ],
+        [
+            (0, 1), (0, 2), (0, 3)
+        ],
+        [
+            (-1, 1), (-2, 2), (-3, 3)
+        ],
+        [
+            (-1, 0), (-2, 0), (-3, 0)
+        ],
+        [
+            (-1, -1), (-2, -2), (-3, -3)
+        ]
+    ];
+
+    let mut largest:i64 = 0;
+    for i in 0 .. grid_vec.len() {
+        let x:i64 = (i % len) as i64;
+        let y:i64 = (i / len) as i64;
+
+        for path in paths.iter() {
+            let mut product:i64 = grid_vec[i];
+            for dir in path.iter() {
+                let new_x = x + dir.0;
+                let new_y = y + dir.1;
+
+                if new_x < 0 || new_x >= len as i64 || new_y < 0 || new_y >= rows {
+                    continue;
+                }
+                product *= grid_vec[(new_y*(len as i64) + new_x) as usize]
+            }
+            if product > largest {
+                largest = product;
+            }
+        }
+    }
+    largest
 }
 
 fn sum_primes(max:i64) -> i64{
     let mut sum:i64 = 0;
     let mut primes:Vec<i64> = Vec::new();
     for i in 2..max {
-        if is_prime(i, &primes) {
+        if util::is_prime(i, &primes) {
             sum += i;
             primes.push(i);
         }
@@ -126,7 +198,7 @@ fn n_prime(n: i32) -> i64 {
     primes.push(2);
     let mut i:i64 = 3;
     loop {
-        if is_prime(i, &primes) {
+        if util::is_prime(i, &primes) {
             primes.push(i);
             if primes.len() == n as usize {
                 return i;
@@ -231,16 +303,4 @@ fn greatest_prime_factor(mut num: i64) -> i64 {
     //     }
     // }
     div - 1
-}
-
-fn is_prime(num: i64, primes: &Vec<i64>) -> bool {
-    for prime in primes {
-        if num % prime == 0 {
-            return false;
-        }
-        if *prime > (num as f64).sqrt() as i64 {
-            return true;
-        }
-    }
-    return true;
 }
