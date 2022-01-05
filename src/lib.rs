@@ -2,7 +2,7 @@ mod util;
 
 #[cfg(test)]
 mod tests {
-    use crate::util;
+    use crate::{n_div_triangle, util};
     use crate::{fibonacci, greatest_prime_factor, largest_product_grid, multiples, n_prime, palindrome, smallest_multiple, special_pyth, sum_primes, sum_squares, thousand_digit};
     #[test]
     fn it_works() {
@@ -74,6 +74,29 @@ mod tests {
     #[test]
     fn largest_product_grid_works() {
         println!("{}", largest_product_grid(util::read_file("data/11.in")))
+    }
+
+    #[test]
+    fn n_div_triange_works() {
+        assert_eq!(n_div_triangle(5), 28);
+        println!("{}", n_div_triangle(500));
+    }
+}
+
+fn n_div_triangle(n:i64) -> i64 {
+    let mut i:i64 = 1;
+    loop {
+        let num = (i*(i+1))/2;
+        let mut div_count = 2;
+        for x in 2..(num as f64).sqrt() as i64 + 1 {
+            if num%x == 0 {
+                div_count += 2;
+            }
+        }
+        if div_count > n {
+            return num;
+        }
+        i += 1;
     }
 }
 
