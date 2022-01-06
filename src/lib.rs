@@ -2,13 +2,11 @@ mod util;
 extern crate num;
 
 use std::collections::HashMap;
-use std::num::FpCategory::Zero;
-use num::bigint::BigInt;
-use num::BigUint;
+use num::{BigUint, One};
 
 #[cfg(test)]
 mod tests {
-    use crate::{large_sum, longest_collatz, n_div_triangle, util};
+    use crate::{large_sum, lattice, longest_collatz, n_div_triangle, power_digits_sum, util};
     use crate::{fibonacci, greatest_prime_factor, largest_product_grid, multiples, n_prime, palindrome, smallest_multiple, special_pyth, sum_primes, sum_squares, thousand_digit};
     #[test]
     fn it_works() {
@@ -97,6 +95,60 @@ mod tests {
     fn longest_collatz_works() {
         println!("{}", longest_collatz());
     }
+
+    #[test]
+    fn power_digits_works() {
+        assert_eq!(power_digits_sum(15), 26);
+        println!("{}", power_digits_sum(1000));
+    }
+
+    #[test]
+    fn lattice_works() {
+        assert_eq!(lattice(2), 6);
+        println!("{}", lattice(20));
+    }
+
+    #[test]
+    fn number_letter_counts_works() {
+        println!("{}", util::num_counter());
+    }
+}
+
+fn lattice(grid_size:i32) -> i64 {
+    let mut memoize:HashMap<(i32, i32), i64> = HashMap::new();
+    node_count((0,0), grid_size, &mut memoize)
+}
+
+fn node_count(node_index:(i32, i32), grid_size:i32, memoize: &mut HashMap<(i32, i32), i64>) -> i64 {
+    if node_index == (grid_size, grid_size) {
+        return 1;
+    }
+    if memoize.contains_key(&node_index) {
+        return memoize.entry(node_index).or_default().clone();
+    }
+    let mut sum:i64 = 0;
+    if node_index.0 + 1 <= grid_size {
+        sum += node_count((node_index.0 + 1, node_index.1), grid_size, memoize);
+    }
+    if node_index.1 + 1 <= grid_size {
+        sum += node_count((node_index.0, node_index.1 + 1), grid_size, memoize);
+    }
+    memoize.insert(node_index, sum);
+    sum
+}
+
+fn power_digits_sum(n:i32) -> i64 {
+    let base:BigUint = BigUint::one() + BigUint::one();
+    let mut mult:BigUint =BigUint::one() + BigUint::one();
+    for _i in 0 .. n - 1 {
+        mult = &mult * &base;
+    }
+    let mut sum:i64 = 0;
+    let str = mult.to_str_radix(10);
+    for char in str.chars() {
+        sum += char.to_digit(10).unwrap() as i64;
+    }
+    sum
 }
 
 fn longest_collatz() -> i64 {
