@@ -1,8 +1,14 @@
 mod util;
+extern crate num;
+
+use std::collections::HashMap;
+use std::num::FpCategory::Zero;
+use num::bigint::BigInt;
+use num::BigUint;
 
 #[cfg(test)]
 mod tests {
-    use crate::{n_div_triangle, util};
+    use crate::{large_sum, longest_collatz, n_div_triangle, util};
     use crate::{fibonacci, greatest_prime_factor, largest_product_grid, multiples, n_prime, palindrome, smallest_multiple, special_pyth, sum_primes, sum_squares, thousand_digit};
     #[test]
     fn it_works() {
@@ -81,6 +87,56 @@ mod tests {
         assert_eq!(n_div_triangle(5), 28);
         println!("{}", n_div_triangle(500));
     }
+
+    #[test]
+    fn large_sum_works() {
+        println!("{}", large_sum(util::read_file("data/13.in")))
+    }
+
+    #[test]
+    fn longest_collatz_works() {
+        println!("{}", longest_collatz());
+    }
+}
+
+fn longest_collatz() -> i64 {
+    let mut memoize:HashMap<i64, i64> = HashMap::new();
+    let mut longest_len:(i64, i64) = (0, 0);
+
+    for i in 1 .. 1000000_i64 {
+        let mut cur = i;
+        let mut count = 0;
+        while cur != 1 {
+            if memoize.contains_key(&cur) {
+                let mem = memoize.entry(cur).or_default();
+                count += *mem;
+                cur = 1;
+                count = count - 1;
+            } else if cur % 2 == 0 {
+                cur = cur/2;
+            } else {
+                cur = cur*3 + 1;
+            }
+            count += 1;
+        }
+        if count > longest_len.1 {
+            longest_len = (i, count);
+        }
+        memoize.insert(i, count);
+    }
+
+    longest_len.0
+}
+
+fn large_sum(nums:String) -> i64 {
+    let mut sum:BigUint = num::Zero::zero();
+    for line in nums.lines() {
+        let add = BigUint::parse_bytes(line.as_bytes(), 10).unwrap();
+        sum = sum + add;
+    }
+    let mut str = sum.to_str_radix(10);
+    let ret_str = str.as_mut_str()[..10].parse::<i64>().unwrap();
+    ret_str
 }
 
 fn n_div_triangle(n:i64) -> i64 {
